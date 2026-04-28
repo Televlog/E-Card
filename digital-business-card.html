@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardStack — Digital Business Card Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --brand: #0A0A0A;
+    --brand-accent: #C8F04A;
+    --brand-accent-2: #4AFFD4;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F2;
+    --surface-3: #EDEDE8;
+    --text-primary: #0A0A0A;
+    --text-secondary: #5A5A56;
+    --text-muted: #9A9A94;
+    --border: rgba(10,10,10,0.1);
+    --border-strong: rgba(10,10,10,0.2);
+    --radius: 12px;
+    --radius-lg: 20px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 48px rgba(0,0,0,0.12), 0 2px 12px rgba(0,0,0,0.06);
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: var(--font-body);
+    background: var(--surface-2);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── SHARED ─────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px;
+    font-weight: 500; cursor: pointer; transition: all 0.15s;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-primary); font-family: var(--font-body);
+  }
+  .btn:hover { background: var(--surface-3); }
+  .btn-primary {
+    background: var(--brand); color: #fff; border-color: var(--brand);
+  }
+  .btn-primary:hover { background: #222; }
+  .btn-accent {
+    background: var(--brand-accent); color: #0A0A0A; border-color: var(--brand-accent);
+  }
+  .btn-accent:hover { background: #b8e040; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-lg { padding: 12px 24px; font-size: 14px; }
+
+  input, textarea, select {
+    font-family: var(--font-body); font-size: 13px;
+    width: 100%; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-primary); outline: none; transition: border 0.15s;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--brand); box-shadow: 0 0 0 3px rgba(10,10,10,0.06);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+
+  label { font-size: 12px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 5px; }
+  .field { margin-bottom: 16px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500;
+  }
+  .badge-green { background: #e8f8e8; color: #1a6b1a; }
+  .badge-amber { background: #fef8e8; color: #8a6200; }
+  .badge-blue { background: #e8f0fe; color: #1a4bbf; }
+  .badge-gray { background: var(--surface-3); color: var(--text-secondary); }
+
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 4px 10px; border-radius: 6px; font-size: 11px;
+    background: var(--surface-3); color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  /* ─── APP SHELL ──────────────────────────── */
+  #app { min-height: 100vh; }
+  
+  /* ─── LANDING PAGE ───────────────────────── */
+  .landing { min-height: 100vh; background: var(--brand); color: #fff; }
+  
+  .landing-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .landing-logo {
+    font-family: var(--font-display); font-size: 22px; color: #fff;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-accent); }
+  .landing-nav-links { display: flex; gap: 8px; }
+  
+  .landing-hero {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 40px 60px; text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(200,240,74,0.12); color: var(--brand-accent);
+    border: 1px solid rgba(200,240,74,0.25); padding: 5px 14px;
+    border-radius: 100px; font-size: 12px; font-weight: 500; margin-bottom: 32px;
+  }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-accent); }
+  .hero-headline {
+    font-family: var(--font-display); font-size: clamp(42px, 7vw, 80px);
+    line-height: 1.0; color: #fff; max-width: 700px; margin-bottom: 24px;
+  }
+  .hero-headline em { color: var(--brand-accent); font-style: italic; }
+  .hero-sub {
+    font-size: 17px; color: rgba(255,255,255,0.55); max-width: 480px;
+    margin-bottom: 40px; line-height: 1.7;
+  }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  
+  .hero-cards {
+    display: flex; gap: 20px; padding: 0 40px 60px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  
+  .feature-strip {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 40px; display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+  }
+  .feature-item {
+    display: flex; align-items: center; gap: 10px;
+    color: rgba(255,255,255,0.5); font-size: 13px;
+  }
+  .feature-item svg { color: var(--brand-accent); }
+
+  /* ─── AUTH PAGES ─────────────────────────── */
+  .auth-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); padding: 20px;
+  }
+  .auth-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 40px; width: 100%; max-width: 420px;
+    border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  }
+  .auth-logo {
+    font-family: var(--font-display); font-size: 20px;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 32px;
+  }
+  .auth-title { font-family: var(--font-display); font-size: 26px; margin-bottom: 8px; }
+  .auth-sub { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+  .auth-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .auth-switch { text-align: center; font-size: 13px; color: var(--text-secondary); margin-top: 20px; }
+  .auth-switch a { color: var(--text-primary); font-weight: 500; cursor: pointer; text-decoration: none; }
+  .auth-switch a:hover { text-decoration: underline; }
+  .auth-demo-accounts {
+    background: var(--surface-2); border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 20px; font-size: 12px; color: var(--text-secondary);
+  }
+  .auth-demo-accounts strong { color: var(--text-primary); }
+
+  /* ─── DASHBOARD SHELL ────────────────────── */
+  .dashboard { display: flex; min-height: 100vh; }
+  
+  .sidebar {
+    width: 240px; background: var(--brand); color: #fff;
+    display: flex; flex-direction: column; position: fixed;
+    height: 100vh; top: 0; left: 0; z-index: 100;
+    transition: transform 0.3s;
+  }
+  .sidebar-logo {
+    font-family: var(--font-display); font-size: 18px; color: #fff;
+    padding: 20px 20px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+  .sidebar-section { margin-bottom: 4px; }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3); padding: 10px 10px 6px; text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 8px; cursor: pointer; transition: all 0.15s;
+    color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 400;
+    user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.active { background: rgba(200,240,74,0.12); color: var(--brand-accent); }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  
+  .sidebar-user {
+    padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
+    background: var(--brand-accent); color: var(--brand);
+  }
+  .sidebar-user-info { flex: 1; min-width: 0; }
+  .sidebar-user-name { font-size: 12px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .logout-btn { cursor: pointer; color: rgba(255,255,255,0.3); transition: color 0.15s; }
+  .logout-btn:hover { color: rgba(255,255,255,0.8); }
+
+  .main-content {
+    margin-left: 240px; flex: 1; padding: 32px;
+    max-width: calc(100% - 240px);
+  }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: var(--font-display); font-size: 28px; line-height: 1.2; }
+  .page-subtitle { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+
+  /* ─── STATS GRID ─────────────────────────── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border-radius: var(--radius); padding: 20px;
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 60px; height: 60px; border-radius: 0 var(--radius) 0 60px;
+    background: var(--surface-2);
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-value { font-family: var(--font-display); font-size: 32px; line-height: 1; margin-bottom: 6px; }
+  .stat-change { font-size: 12px; color: #1a6b1a; }
+
+  /* ─── CARD TABLE ─────────────────────────── */
+  .data-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .data-card-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .data-card-title { font-weight: 500; font-size: 14px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+    background: var(--surface-2); border-bottom: 1px solid var(--border);
+  }
+  .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface-2); }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .user-name { font-weight: 500; font-size: 13px; }
+  .user-email { font-size: 11px; color: var(--text-muted); }
+
+  /* ─── E-CARD PREVIEW ─────────────────────── */
+  .ecard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .ecard-wrapper {
+    border-radius: var(--radius-lg); overflow: hidden;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+    background: var(--surface);
+  }
+  .ecard-wrapper:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  
+  /* ─── THE ACTUAL E-CARD ──────────────────── */
+  .ecard {
+    width: 100%; aspect-ratio: 1.75/1; position: relative;
+    display: flex; align-items: flex-end;
+    overflow: hidden; font-family: var(--font-body);
+  }
+  .ecard-bg { position: absolute; inset: 0; }
+  .ecard-content { position: relative; z-index: 2; padding: 18px; width: 100%; }
+  .ecard-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; margin-bottom: 10px;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .ecard-name { font-weight: 600; font-size: 16px; margin-bottom: 2px; }
+  .ecard-title { font-size: 11px; opacity: 0.75; margin-bottom: 10px; }
+  .ecard-footer { display: flex; align-items: center; justify-content: space-between; }
+  .ecard-company { font-size: 11px; opacity: 0.6; }
+  .ecard-qr-mini {
+    width: 28px; height: 28px; background: rgba(255,255,255,0.9);
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  }
+
+  .ecard-actions {
+    padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── CARD EDITOR ────────────────────────── */
+  .editor-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+  .editor-panel {
+    background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .editor-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .editor-tab {
+    padding: 12px 18px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent;
+    color: var(--text-secondary); font-weight: 400; transition: all 0.15s; user-select: none;
+  }
+  .editor-tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); font-weight: 500; }
+  .editor-tab:hover:not(.active) { color: var(--text-primary); }
+  .editor-body { padding: 20px; }
+  
+  .preview-panel { position: sticky; top: 20px; }
+  .preview-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .preview-device {
+    background: var(--brand); border-radius: 24px; padding: 12px;
+    box-shadow: var(--shadow-lg);
+  }
+  .preview-screen {
+    background: var(--surface-2); border-radius: 16px; overflow: hidden; padding: 20px;
+  }
+  .preview-ecard-lg {
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  /* ─── THEME PICKER ───────────────────────── */
+  .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .theme-swatch {
+    border-radius: 10px; overflow: hidden; cursor: pointer;
+    border: 2px solid transparent; transition: border 0.15s; aspect-ratio: 1.75/1;
+    position: relative;
+  }
+  .theme-swatch.selected { border-color: var(--text-primary); }
+  .theme-swatch:hover { border-color: var(--border-strong); }
+
+  /* ─── FULL CARD VIEW (shareable) ─────────── */
+  .card-view-page {
+    min-height: 100vh; background: var(--surface-2);
+    display: flex; flex-direction: column; align-items: center; padding: 20px;
+  }
+  .card-view-header {
+    width: 100%; max-width: 480px; display: flex; justify-content: space-between;
+    align-items: center; padding: 12px 0; margin-bottom: 16px;
+  }
+  .card-view-brand { font-family: var(--font-display); font-size: 16px; display: flex; align-items: center; gap: 6px; }
+  
+  .full-ecard-container {
+    width: 100%; max-width: 480px;
+    background: var(--surface); border-radius: 24px; overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .full-ecard-hero { width: 100%; aspect-ratio: 1.75/1; position: relative; overflow: hidden; }
+  .full-ecard-info { padding: 28px; }
+  .full-name { font-family: var(--font-display); font-size: 28px; line-height: 1.1; margin-bottom: 4px; }
+  .full-title { color: var(--text-secondary); font-size: 15px; margin-bottom: 4px; }
+  .full-company { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; display: flex; align-items: center; gap: 6px; }
+  .contact-grid { display: grid; gap: 10px; margin-bottom: 24px; }
+  .contact-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: var(--surface-2); border-radius: 12px; text-decoration: none; color: inherit;
+    transition: background 0.15s;
+  }
+  .contact-row:hover { background: var(--surface-3); }
+  .contact-icon {
+    width: 36px; height: 36px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--surface-3); font-size: 16px;
+  }
+  .contact-label { font-size: 11px; color: var(--text-muted); margin-bottom: 1px; }
+  .contact-value { font-size: 13px; font-weight: 500; }
+  .social-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+  .social-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 8px; background: var(--surface-2); border-radius: 12px;
+    cursor: pointer; transition: background 0.15s; border: none; font-family: var(--font-body);
+    font-size: 11px; color: var(--text-secondary);
+  }
+  .social-btn:hover { background: var(--surface-3); }
+  .social-btn-icon { font-size: 20px; }
+  .wallet-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .wallet-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s; border: 1px solid var(--border-strong);
+  }
+  .wallet-btn-apple { background: #000; color: #fff; border-color: #000; }
+  .wallet-btn-apple:hover { background: #222; }
+  .wallet-btn-google { background: #fff; color: #333; }
+  .wallet-btn-google:hover { background: var(--surface-2); }
+  .qr-section { text-align: center; padding: 24px 0 0; border-top: 1px solid var(--border); }
+  .qr-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  #qr-code-full { display: inline-block; }
+  .share-row { display: flex; gap: 8px; margin-top: 16px; }
+
+  /* ─── ADMIN BRANDING ─────────────────────── */
+  .branding-preview {
+    background: var(--brand); border-radius: var(--radius-lg); padding: 28px; color: #fff;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .branding-logo-preview {
+    width: 80px; height: 80px; border-radius: 16px; background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 22px; border: 2px dashed rgba(255,255,255,0.2);
+  }
+  .color-swatches { display: flex; gap: 8px; margin-top: 12px; }
+  .color-swatch-item {
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; transition: border 0.15s;
+  }
+  .color-swatch-item:hover { border-color: var(--border-strong); }
+  .color-swatch-item.selected { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text-primary); }
+
+  /* ─── NOTIFICATIONS ──────────────────────── */
+  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--brand); color: #fff; padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px;
+    animation: toastIn 0.3s ease; max-width: 320px;
+  }
+  .toast.success { background: #0f6e56; }
+  .toast.error { background: #a32d2d; }
+  @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* ─── MODAL ──────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: var(--surface); border-radius: var(--radius-lg); width: 100%;
+    max-width: 540px; max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-family: var(--font-display); font-size: 20px; }
+  .modal-close { cursor: pointer; color: var(--text-muted); background: none; border: none; font-size: 20px; line-height: 1; padding: 4px; }
+  .modal-close:hover { color: var(--text-primary); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* ─── QR SECTION ─────────────────────────── */
+  .qr-box {
+    background: #fff; border-radius: 12px; padding: 16px; display: inline-block;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────── */
+  .mobile-header {
+    display: none; background: var(--brand); color: #fff;
+    padding: 14px 16px; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50;
+  }
+  .hamburger { cursor: pointer; background: none; border: none; color: #fff; font-size: 20px; padding: 4px; }
+  
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; max-width: 100%; padding: 16px; }
+    .mobile-header { display: flex; }
+    .editor-layout { grid-template-columns: 1fr; }
+    .preview-panel { position: static; }
+    .landing-nav { padding: 14px 20px; }
+    .landing-hero { padding: 40px 20px 40px; }
+    .hero-cards { padding: 0 20px 40px; }
+    .feature-strip { padding: 24px 20px; gap: 20px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .wallet-buttons { grid-template-columns: 1fr; }
+    .social-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .ecard-grid { grid-template-columns: 1fr; }
+    .theme-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ─── SIDEBAR OVERLAY ────────────────────── */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+  .sidebar-overlay.open { display: block; }
+
+  /* ─── SEARCH ─────────────────────────────── */
+  .search-input-wrap { position: relative; }
+  .search-input-wrap input { padding-left: 34px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+
+  /* ─── CHIP TOGGLE ────────────────────────── */
+  .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 4px 12px; border-radius: 100px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border); color: var(--text-secondary);
+    transition: all 0.15s; user-select: none;
+  }
+  .chip.active { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+  .chip:hover:not(.active) { background: var(--surface-3); }
+
+  /* ─── MISC ───────────────────────────────── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .section-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+  .link { color: inherit; text-decoration: none; cursor: pointer; }
+  .link:hover { text-decoration: underline; }
+  
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  
+  .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0; background: var(--surface-3);
+    border-radius: 22px; transition: 0.2s; border: 1px solid var(--border-strong);
+  }
+  .toggle-slider::before {
+    position: absolute; content: ''; height: 16px; width: 16px; left: 2px; bottom: 2px;
+    background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--text-primary); border-color: var(--text-primary); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .mt-1 { margin-top: 4px; }
+  .mb-4 { margin-bottom: 16px; }
+  .text-sm { font-size: 12px; }
+  .text-muted { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const THEMES = [
+  { id: 'midnight', name: 'Midnight', bg: 'linear-gradient(135deg, #0A0A0A 0%, #1a1a2e 100%)', text: '#fff', accent: '#C8F04A' },
+  { id: 'ocean', name: 'Ocean', bg: 'linear-gradient(135deg, #0f3460 0%, #16213e 100%)', text: '#fff', accent: '#4AFFD4' },
+  { id: 'coral', name: 'Coral', bg: 'linear-gradient(135deg, #c94b4b 0%, #4b134f 100%)', text: '#fff', accent: '#FFD4A3' },
+  { id: 'forest', name: 'Forest', bg: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)', text: '#fff', accent: '#C8F04A' },
+  { id: 'gold', name: 'Gold', bg: 'linear-gradient(135deg, #B8860B 0%, #1a1200 100%)', text: '#fff', accent: '#FFD700' },
+  { id: 'lavender', name: 'Lavender', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: '#fff', accent: '#FFE8FA' },
+  { id: 'slate', name: 'Slate', bg: 'linear-gradient(135deg, #434343 0%, #000000 100%)', text: '#fff', accent: '#fff' },
+  { id: 'rose', name: 'Rose', bg: 'linear-gradient(135deg, #f953c6 0%, #b91d73 100%)', text: '#fff', accent: '#FFE8FA' },
+  { id: 'arctic', name: 'Arctic', bg: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', text: '#0A0A0A', accent: '#0f3460' },
+];
+
+const AVATAR_COLORS = ['#4AFFD4','#C8F04A','#FF6B6B','#4A9FFF','#FF9F4A','#C84AFF'];
+
+const STATE = {
+  page: 'landing', // landing | login | register | dashboard | card-view
+  user: null,
+  dashTab: 'overview', // overview | my-card | users | branding | settings
+  editorTab: 'personal', // personal | contact | social | design
+  modal: null,
+  sidebarOpen: false,
+  search: '',
+  users: [
+    { id: 1, name: 'Sarah Chen', email: 'sarah@acme.com', role: 'user', title: 'VP of Marketing', company: 'Acme Corp', phone: '+1 (415) 555-0172', website: 'sarah.acme.com', linkedin: 'linkedin.com/in/sarahchen', twitter: '@sarahchen', theme: 'ocean', bio: 'Building brands that matter.', views: 142, active: true, avatarColor: '#4AFFD4' },
+    { id: 2, name: 'James Wright', email: 'james@acme.com', role: 'user', title: 'Software Engineer', company: 'Acme Corp', phone: '+1 (415) 555-0183', website: 'jameswright.dev', linkedin: 'linkedin.com/in/jwright', twitter: '@jwright_dev', theme: 'midnight', bio: 'Code. Coffee. Repeat.', views: 89, active: true, avatarColor: '#C8F04A' },
+    { id: 3, name: 'Priya Sharma', email: 'priya@acme.com', role: 'admin', title: 'Chief Executive Officer', company: 'Acme Corp', phone: '+1 (415) 555-0101', website: 'acmecorp.com', linkedin: 'linkedin.com/in/priyasharma', twitter: '@priyas', theme: 'coral', bio: 'Leading Acme into the future.', views: 311, active: true, avatarColor: '#FF6B6B' },
+    { id: 4, name: 'Marcus Johnson', email: 'marcus@acme.com', role: 'user', title: 'Head of Sales', company: 'Acme Corp', phone: '+1 (415) 555-0199', website: '', linkedin: 'linkedin.com/in/marcusj', twitter: '', theme: 'forest', bio: 'Closing deals and opening doors.', views: 76, active: false, avatarColor: '#4A9FFF' },
+  ],
+  branding: {
+    companyName: 'Acme Corp',
+    logoLetter: 'A',
+    primaryColor: '#0A0A0A',
+    accentColor: '#C8F04A',
+    defaultTheme: 'midnight',
+  },
+  viewCardId: null,
+};
+
+// ─── UTILS ─────────────────────────────────────────────────────────────────
+function initials(name) { return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(); }
+function getTheme(id) { return THEMES.find(t => t.id === id) || THEMES[0]; }
+function getUser(id) { return STATE.users.find(u => u.id === id); }
+function getCurrentUser() { return STATE.users.find(u => u.email === STATE.user?.email); }
+
+function showToast(msg, type='default') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success: '✓', error: '✕', default: '●' };
+  t.innerHTML = `<span style="opacity:0.7">${icons[type]||icons.default}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function navigate(page, extra={}) {
+  Object.assign(STATE, extra);
+  STATE.page = page;
+  render();
+  window.scrollTo(0,0);
+}
+
+function setDashTab(tab) { STATE.dashTab = tab; STATE.modal = null; render(); }
+function setEditorTab(tab) { STATE.editorTab = tab; render(); }
+
+// ─── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  if (STATE.page === 'landing') { app.innerHTML = renderLanding(); }
+  else if (STATE.page === 'login') { app.innerHTML = renderLogin(); }
+  else if (STATE.page === 'register') { app.innerHTML = renderRegister(); }
+  else if (STATE.page === 'dashboard') { app.innerHTML = renderDashboard(); }
+  else if (STATE.page === 'card-view') { app.innerHTML = renderCardView(); }
+  attachEvents();
+  if (STATE.page === 'card-view') generateQR();
+}
+
+// ─── LANDING ───────────────────────────────────────────────────────────────
+function renderLanding() {
+  return `
+  <div class="landing">
+    <nav class="landing-nav">
+      <div class="landing-logo"><div class="logo-dot"></div>CardStack</div>
+      <div class="landing-nav-links">
+        <button class="btn" style="border-color:rgba(255,255,255,0.15);color:#fff;background:rgba(255,255,255,0.05)" onclick="navigate('login')">Sign in</button>
+        <button class="btn btn-accent btn-sm" onclick="navigate('register')">Get started free</button>
+      </div>
+    </nav>
+    <div class="landing-hero">
+      <div class="hero-eyebrow">Digital business cards for modern teams</div>
+      <h1 class="hero-headline">Your brand,<br><em>always in pocket.</em></h1>
+      <p class="hero-sub">Create stunning digital business cards, share via QR code or link, and add to Apple & Google Wallet. One tap, total impression.</p>
+      <div class="hero-actions">
+        <button class="btn btn-accent btn-lg" onclick="navigate('register')">Create your card — it's free</button>
+        <button class="btn btn-lg" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05)" onclick="navigate('card-view', {viewCardId: 3})">See a live example ↗</button>
+      </div>
+    </div>
+    <div class="hero-cards">
+      ${STATE.users.slice(0,3).map(u => renderMiniECard(u, true)).join('')}
+    </div>
+    <div class="feature-strip">
+      ${[['📱','Mobile wallet ready'],['🔗','Instant sharing'],['🎨','Custom themes'],['📊','View analytics'],['🔄','Real-time updates'],['🛡️','Secure platform']].map(([i,t]) => `<div class="feature-item">${i} ${t}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderMiniECard(user, clickable=false) {
+  const theme = getTheme(user.theme);
+  return `
+  <div style="width:260px;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.3);${clickable?'cursor:pointer':''}" ${clickable?`onclick="navigate('card-view',{viewCardId:${user.id}})"`:''}> 
+    <div style="height:150px;background:${theme.bg};position:relative;display:flex;align-items:flex-end">
+      <div style="position:absolute;top:16px;right:16px;width:24px;height:24px;background:rgba(255,255,255,0.9);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px">QR</div>
+      <div style="padding:16px;color:${theme.text}">
+        <div style="width:36px;height:36px;border-radius:50%;background:${user.avatarColor};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:#0A0A0A;margin-bottom:8px;border:2px solid rgba(255,255,255,0.3)">${initials(user.name)}</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:2px">${user.name}</div>
+        <div style="font-size:11px;opacity:0.7">${user.title}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────────────────
+function renderLogin() {
+  return `<div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo"><div class="logo-dot" style="width:8px;height:8px;border-radius:50%;background:#C8F04A;display:inline-block"></div> CardStack</div>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Sign in to manage your digital business card.</p>
+      <div class="auth-demo-accounts">
+        <strong>Demo accounts:</strong><br>
+        👑 Admin: <strong>priya@acme.com</strong><br>
+        👤 User: <strong>sarah@acme.com</strong><br>
+        Password: <strong>demo</strong>
+      </div>
+      <div class="field"><label>Email address</label><input type="email" id="login-email" placeholder="you@company.com" value="priya@acme.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" value="demo"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()">Sign in →</button>
+      <div class="auth-switch">Don't have an account? <a onclick="navigate('register')">Sign up free</a></div>
+      <div class="auth-switch" style="margin-top:8px"><a onclick="navigate('landing')">← Back to home</a></div>
+    </div>
+  </div>`;
+}
+
+function renderRegister() {
+  return `<div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo"><div class="logo-dot" style="width:8px;height:8px;border-radius:50%;background:#C8F04A;display:inline-block"></div> CardStack</div>
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-sub">Join CardStack and make your first digital business card.</p>
+      <div class="input-row">
+        <div class="field"><label>First name</label><input type="text" id="reg-fname" placeholder="Alex"></div>
+        <div class="field"><label>Last name</label><input type="text" id="reg-lname" placeholder="Johnson"></div>
+      </div>
+      <div class="field"><label>Work email</label><input type="email" id="reg-email" placeholder="alex@company.com"></div>
+      <div class="field"><label>Job title</label><input type="text" id="reg-title" placeholder="Product Manager"></div>
+      <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="Choose a strong password"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doRegister()">Create account →</button>
+      <div class="auth-switch">Already have an account? <a onclick="navigate('login')">Sign in</a></div>
+      <div class="auth-switch" style="margin-top:8px"><a onclick="navigate('landing')">← Back to home</a></div>
+    </div>
+  </div>`;
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email')?.value;
+  const password = document.getElementById('login-password')?.value;
+  const user = STATE.users.find(u => u.email === email);
+  if (!user || password !== 'demo') { showToast('Invalid credentials. Try demo / demo', 'error'); return; }
+  STATE.user = { email: user.email, role: user.role };
+  showToast(`Welcome back, ${user.name.split(' ')[0]}! 👋`, 'success');
+  navigate('dashboard');
+}
+
+function doRegister() {
+  const fname = document.getElementById('reg-fname')?.value;
+  const lname = document.getElementById('reg-lname')?.value;
+  const email = document.getElementById('reg-email')?.value;
+  const title = document.getElementById('reg-title')?.value;
+  if (!fname || !email) { showToast('Please fill in required fields', 'error'); return; }
+  const newUser = {
+    id: Date.now(), name: `${fname} ${lname}`.trim(), email, role: 'user',
+    title: title || 'Team Member', company: STATE.branding.companyName,
+    phone: '', website: '', linkedin: '', twitter: '',
+    theme: 'midnight', bio: '', views: 0, active: true,
+    avatarColor: AVATAR_COLORS[STATE.users.length % AVATAR_COLORS.length]
+  };
+  STATE.users.push(newUser);
+  STATE.user = { email, role: 'user' };
+  showToast('Account created successfully! 🎉', 'success');
+  navigate('dashboard');
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const cu = getCurrentUser();
+  const isAdmin = STATE.user?.role === 'admin';
+  return `
+  <div class="dashboard">
+    <div class="sidebar-overlay ${STATE.sidebarOpen?'open':''}" onclick="toggleSidebar()"></div>
+    <aside class="sidebar ${STATE.sidebarOpen?'open':''}">
+      <div class="sidebar-logo"><div class="logo-dot" style="width:8px;height:8px;border-radius:50%;background:#C8F04A;flex-shrink:0"></div>CardStack</div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Main</div>
+          ${navItem('overview','Overview','M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6')}
+          ${navItem('my-card','My Card','M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4m0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2')}
+        </div>
+        ${isAdmin ? `
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Admin</div>
+          ${navItem('users','Users','M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z')}
+          ${navItem('branding','Branding','M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01')}
+          ${navItem('settings','Settings','M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z')}
+        </div>` : ''}
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" style="background:${cu?.avatarColor||'#C8F04A'};color:#0A0A0A">${initials(cu?.name||'U')}</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">${cu?.name||'User'}</div>
+          <div class="sidebar-user-role">${cu?.role==='admin'?'Administrator':'Team Member'}</div>
+        </div>
+        <div class="logout-btn" onclick="doLogout()" title="Sign out">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </div>
+      </div>
+    </aside>
+    <div class="main-content">
+      <div class="mobile-header" style="margin: -16px -16px 16px -16px;display:flex">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <span style="font-family:var(--font-display);font-size:16px">CardStack</span>
+        <div style="width:32px"></div>
+      </div>
+      ${STATE.dashTab === 'overview' ? renderOverview() : ''}
+      ${STATE.dashTab === 'my-card' ? renderMyCard() : ''}
+      ${STATE.dashTab === 'users' && isAdmin ? renderUsers() : ''}
+      ${STATE.dashTab === 'branding' && isAdmin ? renderBranding() : ''}
+      ${STATE.dashTab === 'settings' && isAdmin ? renderSettings() : ''}
+    </div>
+  </div>
+  ${STATE.modal === 'view-card' ? renderCardModal() : ''}
+  ${STATE.modal === 'invite-user' ? renderInviteModal() : ''}
+  `;
+}
+
+function navItem(id, label, path) {
+  return `<div class="nav-item ${STATE.dashTab===id?'active':''}" onclick="setDashTab('${id}')">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>
+    ${label}
+  </div>`;
+}
+
+// ─── OVERVIEW ──────────────────────────────────────────────────────────────
+function renderOverview() {
+  const cu = getCurrentUser();
+  const isAdmin = STATE.user?.role === 'admin';
+  const totalViews = STATE.users.reduce((a,u) => a+u.views, 0);
+  return `
+  <div class="page-header">
+    <h1 class="page-title">Good morning, ${cu?.name?.split(' ')[0]} 👋</h1>
+    <p class="page-subtitle">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+  </div>
+  ${isAdmin ? `
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value">${STATE.users.length}</div><div class="stat-change">+2 this week</div></div>
+    <div class="stat-card"><div class="stat-label">Total Card Views</div><div class="stat-value">${totalViews.toLocaleString()}</div><div class="stat-change">+47 today</div></div>
+    <div class="stat-card"><div class="stat-label">Active Cards</div><div class="stat-value">${STATE.users.filter(u=>u.active).length}</div><div class="stat-change">100% uptime</div></div>
+    <div class="stat-card"><div class="stat-label">QR Scans (7d)</div><div class="stat-value">284</div><div class="stat-change">+18% vs last week</div></div>
+  </div>` : `
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Profile Views</div><div class="stat-value">${cu?.views||0}</div><div class="stat-change">+12 this week</div></div>
+    <div class="stat-card"><div class="stat-label">QR Scans</div><div class="stat-value">34</div><div class="stat-change">+5 today</div></div>
+    <div class="stat-card"><div class="stat-label">Link Clicks</div><div class="stat-value">28</div><div class="stat-change">+3 this week</div></div>
+  </div>`}
+  <div style="display:grid;grid-template-columns:${isAdmin?'1fr 1fr':'1fr'};gap:20px;flex-wrap:wrap">
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Your Card Preview</div>
+        <button class="btn btn-sm" onclick="navigate('card-view',{viewCardId:${cu?.id}})">View live ↗</button>
+      </div>
+      <div style="padding:20px">
+        ${renderECard(cu)}
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="setDashTab('my-card')">Edit card</button>
+          <button class="btn btn-sm" onclick="copyLink(${cu?.id})">Copy link</button>
+        </div>
+      </div>
+    </div>
+    ${isAdmin ? `
+    <div class="data-card">
+      <div class="data-card-header"><div class="data-card-title">Recent Activity</div></div>
+      <div style="padding:8px 0">
+        ${STATE.users.slice(0,4).map(u => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 16px">
+          <div class="user-avatar" style="background:${u.avatarColor};color:#0A0A0A;font-size:11px;font-weight:600;width:28px;height:28px;flex-shrink:0">${initials(u.name)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500">${u.name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${u.views} views · ${u.title}</div>
+          </div>
+          <span class="badge ${u.active?'badge-green':'badge-gray'}">${u.active?'Active':'Inactive'}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+  </div>`;
+}
+
+// ─── MY CARD EDITOR ─────────────────────────────────────────────────────────
+function renderMyCard() {
+  const cu = getCurrentUser();
+  if (!cu) return '<p>No card found.</p>';
+  return `
+  <div class="page-header">
+    <h1 class="page-title">My Business Card</h1>
+    <p class="page-subtitle">Customize your digital business card — changes are reflected instantly.</p>
+  </div>
+  <div class="editor-layout">
+    <div>
+      <div class="editor-panel">
+        <div class="editor-tabs">
+          ${['personal','contact','social','design'].map(t => `<div class="editor-tab ${STATE.editorTab===t?'active':''}" onclick="setEditorTab('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</div>`).join('')}
+        </div>
+        <div class="editor-body">
+          ${STATE.editorTab === 'personal' ? renderPersonalTab(cu) : ''}
+          ${STATE.editorTab === 'contact' ? renderContactTab(cu) : ''}
+          ${STATE.editorTab === 'social' ? renderSocialTab(cu) : ''}
+          ${STATE.editorTab === 'design' ? renderDesignTab(cu) : ''}
+        </div>
+      </div>
+    </div>
+    <div class="preview-panel">
+      <div class="preview-label">Live Preview</div>
+      <div class="preview-device">
+        <div class="preview-screen">
+          <div class="preview-ecard-lg">
+            ${renderECard(cu, true)}
+          </div>
+          <div style="margin-top:12px">
+            ${renderCardInfoPreview(cu)}
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="navigate('card-view',{viewCardId:${cu.id}})">View live card ↗</button>
+        <button class="btn btn-sm" style="justify-content:center" onclick="copyLink(${cu.id})">Copy link</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderPersonalTab(cu) {
+  return `
+  <div class="input-row">
+    <div class="field"><label>First Name</label><input type="text" id="fname" value="${cu.name.split(' ')[0]}" oninput="updateUserField('name', document.getElementById('fname').value+' '+(document.getElementById('lname')?.value||''))"></div>
+    <div class="field"><label>Last Name</label><input type="text" id="lname" value="${cu.name.split(' ').slice(1).join(' ')}" oninput="updateUserField('name', document.getElementById('fname').value+' '+document.getElementById('lname').value)"></div>
+  </div>
+  <div class="field"><label>Job Title</label><input type="text" value="${cu.title}" oninput="updateUserField('title',this.value)"></div>
+  <div class="field"><label>Company</label><input type="text" value="${cu.company}" oninput="updateUserField('company',this.value)"></div>
+  <div class="field"><label>Bio / Tagline</label><textarea oninput="updateUserField('bio',this.value)">${cu.bio}</textarea></div>
+  <div class="field">
+    <label>Avatar Color</label>
+    <div class="color-swatches">
+      ${AVATAR_COLORS.map(c => `<div class="color-swatch-item ${cu.avatarColor===c?'selected':''}" style="background:${c}" onclick="updateUserField('avatarColor','${c}')"></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderContactTab(cu) {
+  return `
+  <div class="field"><label>Phone Number</label><input type="tel" value="${cu.phone}" oninput="updateUserField('phone',this.value)" placeholder="+1 (555) 000-0000"></div>
+  <div class="field"><label>Email Address</label><input type="email" value="${cu.email}" placeholder="${cu.email}" disabled style="opacity:0.6;cursor:not-allowed"></div>
+  <div class="field"><label>Website</label><input type="text" value="${cu.website}" oninput="updateUserField('website',this.value)" placeholder="yourwebsite.com"></div>
+  <div class="field"><label>Work Location</label><input type="text" value="${cu.location||''}" oninput="updateUserField('location',this.value)" placeholder="San Francisco, CA"></div>`;
+}
+
+function renderSocialTab(cu) {
+  return `
+  <div class="field"><label>LinkedIn URL</label><input type="text" value="${cu.linkedin}" oninput="updateUserField('linkedin',this.value)" placeholder="linkedin.com/in/yourname"></div>
+  <div class="field"><label>Twitter / X</label><input type="text" value="${cu.twitter}" oninput="updateUserField('twitter',this.value)" placeholder="@yourhandle"></div>
+  <div class="field"><label>GitHub</label><input type="text" value="${cu.github||''}" oninput="updateUserField('github',this.value)" placeholder="github.com/yourname"></div>
+  <div class="field"><label>Instagram</label><input type="text" value="${cu.instagram||''}" oninput="updateUserField('instagram',this.value)" placeholder="@yourhandle"></div>`;
+}
+
+function renderDesignTab(cu) {
+  return `
+  <div class="section-title">Card Theme</div>
+  <div class="theme-grid" style="margin-bottom:20px">
+    ${THEMES.map(t => `
+    <div class="theme-swatch ${cu.theme===t.id?'selected':''}" style="background:${t.bg}" onclick="updateUserField('theme','${t.id}')">
+      <div style="padding:8px;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+        <div style="font-size:9px;color:${t.text};opacity:0.8;font-weight:500">${t.name}</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderCardInfoPreview(cu) {
+  return `<div style="padding:4px 4px 0;font-size:12px;color:var(--text-secondary)">
+    <div style="font-weight:500;color:var(--text-primary);font-size:13px">${cu.name}</div>
+    <div>${cu.title} · ${cu.company}</div>
+    ${cu.phone ? `<div style="margin-top:4px">${cu.phone}</div>` : ''}
+  </div>`;
+}
+
+// ─── E-CARD RENDER ──────────────────────────────────────────────────────────
+function renderECard(user, large=false) {
+  if (!user) return '';
+  const theme = getTheme(user.theme);
+  const h = large ? '200px' : '160px';
+  return `
+  <div style="width:100%;height:${h};background:${theme.bg};position:relative;display:flex;align-items:flex-end;overflow:hidden">
+    <div style="position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.04);transform:translate(20px,-20px)"></div>
+    <div style="position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);transform:translate(40px,-40px)"></div>
+    <div style="position:absolute;top:12px;right:12px;width:${large?'28px':'22px'};height:${large?'28px':'22px'};background:rgba(255,255,255,0.9);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#333">QR</div>
+    <div style="padding:${large?'18px':'14px'};color:${theme.text};position:relative;z-index:1;width:100%">
+      <div style="width:${large?'40px':'32px'};height:${large?'40px':'32px'};border-radius:50%;background:${user.avatarColor};display:flex;align-items:center;justify-content:center;font-weight:600;font-size:${large?'14px':'12px'};color:#0A0A0A;margin-bottom:8px;border:2px solid rgba(255,255,255,0.25)">${initials(user.name)}</div>
+      <div style="font-weight:600;font-size:${large?'15px':'13px'};margin-bottom:2px">${user.name}</div>
+      <div style="font-size:${large?'11px':'10px'};opacity:0.7;margin-bottom:8px">${user.title}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:10px;opacity:0.5">${user.company}</div>
+        <div style="font-size:${large?'11px':'10px'};opacity:0.5">${user.email}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── USERS ADMIN ─────────────────────────────────────────────────────────────
+function renderUsers() {
+  const filtered = STATE.users.filter(u => !STATE.search || u.name.toLowerCase().includes(STATE.search) || u.email.toLowerCase().includes(STATE.search));
+  return `
+  <div class="page-header flex items-center justify-between">
+    <div><h1 class="page-title">Team Members</h1><p class="page-subtitle">Manage user accounts and digital business cards.</p></div>
+    <button class="btn btn-primary" onclick="STATE.modal='invite-user';render()">+ Invite user</button>
+  </div>
+  <div class="data-card">
+    <div class="data-card-header">
+      <div class="search-input-wrap" style="width:260px">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search users…" value="${STATE.search}" oninput="STATE.search=this.value;render()">
+      </div>
+      <div class="chip-group">
+        <div class="chip active">All (${STATE.users.length})</div>
+        <div class="chip">Active (${STATE.users.filter(u=>u.active).length})</div>
+        <div class="chip">Admin (${STATE.users.filter(u=>u.role==='admin').length})</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>User</th><th>Role</th><th>Card Views</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${filtered.map(u => `
+          <tr>
+            <td><div class="user-cell">
+              <div class="user-avatar" style="background:${u.avatarColor};color:#0A0A0A;font-size:11px">${initials(u.name)}</div>
+              <div><div class="user-name">${u.name}</div><div class="user-email">${u.email}</div></div>
+            </div></td>
+            <td><span class="badge ${u.role==='admin'?'badge-blue':'badge-gray'}">${u.role}</span></td>
+            <td><span style="font-weight:500">${u.views}</span></td>
+            <td><span class="badge ${u.active?'badge-green':'badge-gray'}">${u.active?'Active':'Inactive'}</span></td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-sm" onclick="navigate('card-view',{viewCardId:${u.id}})">View ↗</button>
+                <button class="btn btn-sm" onclick="toggleUserStatus(${u.id})">${u.active?'Deactivate':'Activate'}</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ─── BRANDING ADMIN ──────────────────────────────────────────────────────────
+function renderBranding() {
+  const b = STATE.branding;
+  return `
+  <div class="page-header"><h1 class="page-title">Company Branding</h1><p class="page-subtitle">Control global branding applied across all cards.</p></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="data-card">
+      <div class="data-card-header"><div class="data-card-title">Brand Identity</div></div>
+      <div style="padding:20px">
+        <div class="field"><label>Company Name</label><input type="text" value="${b.companyName}" oninput="STATE.branding.companyName=this.value;render()"></div>
+        <div class="field"><label>Logo Letter / Monogram</label><input type="text" value="${b.logoLetter}" oninput="STATE.branding.logoLetter=this.value;render()" maxlength="2"></div>
+        <div class="field">
+          <label>Brand Colors</label>
+          <div class="color-swatches" style="margin-bottom:8px">
+            ${['#0A0A0A','#0f3460','#c94b4b','#134e5e','#B8860B','#667eea'].map(c => 
+              `<div class="color-swatch-item ${b.primaryColor===c?'selected':''}" style="background:${c}" onclick="STATE.branding.primaryColor='${c}';render()"></div>`
+            ).join('')}
+          </div>
+          <div class="color-swatches">
+            ${['#C8F04A','#4AFFD4','#FFD4A3','#FFE8FA','#FFD700','#fff'].map(c => 
+              `<div class="color-swatch-item ${b.accentColor===c?'selected':''}" style="background:${c};border:1px solid var(--border)" onclick="STATE.branding.accentColor='${c}';render()"></div>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>Default Card Theme</label>
+          <select onchange="STATE.branding.defaultTheme=this.value;render()">
+            ${THEMES.map(t => `<option value="${t.id}" ${b.defaultTheme===t.id?'selected':''}>${t.name}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="showToast('Branding saved!','success')">Save changes</button>
+      </div>
+    </div>
+    <div>
+      <div class="branding-preview" style="background:${b.primaryColor};margin-bottom:16px">
+        <div class="branding-logo-preview" style="border-color:${b.accentColor}40">
+          <span style="color:${b.accentColor}">${b.logoLetter}</span>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;margin-bottom:4px">${b.companyName}</div>
+          <div style="font-size:13px;opacity:0.5">Company branding preview</div>
+          <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:${b.accentColor};color:#0A0A0A;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600">${b.companyName} Cards</div>
+        </div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header"><div class="data-card-title">Card Preview with Branding</div></div>
+        <div style="padding:16px">
+          ${renderECard({...STATE.users[0], theme: b.defaultTheme}, false)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function renderSettings() {
+  return `
+  <div class="page-header"><h1 class="page-title">Platform Settings</h1><p class="page-subtitle">Configure global platform behavior.</p></div>
+  <div class="data-card" style="max-width:600px">
+    <div class="data-card-header"><div class="data-card-title">General Settings</div></div>
+    <div style="padding:20px">
+      ${settingRow('Allow user theme customization', true)}
+      ${settingRow('Enable QR code generation', true)}
+      ${settingRow('Show view analytics to users', true)}
+      ${settingRow('Allow wallet card downloads', true)}
+      ${settingRow('Require admin approval for new accounts', false)}
+      ${settingRow('Send email notifications on card views', false)}
+      <hr class="divider">
+      <div class="field"><label>Custom Domain</label><input type="text" placeholder="cards.yourcompany.com" value=""></div>
+      <div class="field"><label>Email footer text</label><input type="text" placeholder="Powered by CardStack" value=""></div>
+      <button class="btn btn-primary" onclick="showToast('Settings saved!','success')">Save settings</button>
+    </div>
+  </div>`;
+}
+
+function settingRow(label, checked) {
+  return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+    <span style="font-size:13px">${label}</span>
+    <label class="toggle"><input type="checkbox" ${checked?'checked':''} onchange="showToast('Setting updated','success')"><span class="toggle-slider"></span></label>
+  </div>`;
+}
+
+// ─── CARD VIEW (public shareable) ────────────────────────────────────────────
+function renderCardView() {
+  const user = getUser(STATE.viewCardId);
+  if (!user) return '<div style="padding:40px;text-align:center">Card not found</div>';
+  const theme = getTheme(user.theme);
+  const contacts = [
+    user.email && { icon: '📧', label: 'Email', value: user.email },
+    user.phone && { icon: '📞', label: 'Phone', value: user.phone },
+    user.website && { icon: '🌐', label: 'Website', value: user.website },
+    user.location && { icon: '📍', label: 'Location', value: user.location },
+  ].filter(Boolean);
+  const socials = [
+    user.linkedin && { icon: '💼', label: 'LinkedIn', url: user.linkedin },
+    user.twitter && { icon: '𝕏', label: 'Twitter', url: user.twitter },
+    user.github && { icon: '⌨', label: 'GitHub', url: user.github },
+    user.instagram && { icon: '📸', label: 'Instagram', url: user.instagram },
+  ].filter(Boolean);
+
+  return `
+  <div class="card-view-page">
+    <div class="card-view-header">
+      <div class="card-view-brand" onclick="navigate('landing')" style="cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;background:#C8F04A;display:inline-block"></span>CardStack</div>
+      ${STATE.user ? `<button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>` : `<button class="btn btn-sm" onclick="navigate('login')">Sign in</button>`}
+    </div>
+    <div class="full-ecard-container">
+      <div class="full-ecard-hero" style="background:${theme.bg}">
+        <div style="position:absolute;top:0;right:0;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.04);transform:translate(60px,-60px)"></div>
+        <div style="position:absolute;bottom:0;left:0;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.03);transform:translate(-40px,40px)"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:flex-end;padding:28px;color:${theme.text};position:relative;z-index:1">
+          <div>
+            <div style="width:56px;height:56px;border-radius:50%;background:${user.avatarColor};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#0A0A0A;margin-bottom:14px;border:3px solid rgba(255,255,255,0.25)">${initials(user.name)}</div>
+            <div style="font-size:24px;font-weight:600;margin-bottom:4px">${user.name}</div>
+            <div style="font-size:14px;opacity:0.75;margin-bottom:4px">${user.title}</div>
+            <div style="font-size:12px;opacity:0.5">${user.company}</div>
+          </div>
+        </div>
+      </div>
+      <div class="full-ecard-info">
+        ${user.bio ? `<p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6">${user.bio}</p>` : ''}
+        ${contacts.length ? `<div class="contact-grid">${contacts.map(c => `
+          <div class="contact-row">
+            <div class="contact-icon">${c.icon}</div>
+            <div><div class="contact-label">${c.label}</div><div class="contact-value">${c.value}</div></div>
+          </div>`).join('')}</div>` : ''}
+        ${socials.length ? `
+          <div class="section-title" style="margin-bottom:10px">Social & Links</div>
+          <div class="social-grid" style="margin-bottom:20px">
+            ${socials.map(s => `<button class="social-btn" onclick="showToast('Opening ${s.label}…')"><div class="social-btn-icon">${s.icon}</div>${s.label}</button>`).join('')}
+          </div>` : ''}
+        <div class="section-title" style="margin-bottom:10px">Save to Wallet</div>
+        <div class="wallet-buttons">
+          <div class="wallet-btn wallet-btn-apple" onclick="showToast('Generating Apple Wallet pass…','success')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Apple Wallet
+          </div>
+          <div class="wallet-btn wallet-btn-google" onclick="showToast('Generating Google Wallet pass…','success')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#4285F4"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
+            Google Wallet
+          </div>
+        </div>
+        <div class="qr-section">
+          <p class="qr-label">Scan QR code to share this card</p>
+          <div class="qr-box"><div id="qr-code-full"></div></div>
+          <div class="share-row">
+            <button class="btn" style="flex:1;justify-content:center" onclick="copyLink(${user.id})">📋 Copy link</button>
+            <button class="btn" style="flex:1;justify-content:center" onclick="showToast('Downloading card…','success')">⬇ Download</button>
+            <button class="btn" style="flex:1;justify-content:center" onclick="showToast('Sharing…')">↗ Share</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:16px">Powered by <a onclick="navigate('landing')" style="cursor:pointer;color:inherit;font-weight:500">CardStack</a></p>
+  </div>`;
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function renderInviteModal() {
+  return `<div class="modal-overlay" onclick="if(event.target===this){STATE.modal=null;render()}">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Invite Team Member</div>
+        <button class="modal-close" onclick="STATE.modal=null;render()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="field"><label>Full Name</label><input type="text" id="inv-name" placeholder="Alex Johnson"></div>
+        <div class="field"><label>Work Email</label><input type="email" id="inv-email" placeholder="alex@company.com"></div>
+        <div class="field"><label>Job Title</label><input type="text" id="inv-title" placeholder="Product Manager"></div>
+        <div class="field"><label>Role</label>
+          <select id="inv-role"><option value="user">Team Member</option><option value="admin">Admin</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="STATE.modal=null;render()">Cancel</button>
+        <button class="btn btn-primary" onclick="doInviteUser()">Send invitation</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function doInviteUser() {
+  const name = document.getElementById('inv-name')?.value;
+  const email = document.getElementById('inv-email')?.value;
+  const title = document.getElementById('inv-title')?.value;
+  const role = document.getElementById('inv-role')?.value;
+  if (!name || !email) { showToast('Name and email are required', 'error'); return; }
+  STATE.users.push({
+    id: Date.now(), name, email, role: role||'user', title: title||'Team Member',
+    company: STATE.branding.companyName, phone: '', website: '', linkedin: '', twitter: '',
+    theme: STATE.branding.defaultTheme, bio: '', views: 0, active: true,
+    avatarColor: AVATAR_COLORS[STATE.users.length % AVATAR_COLORS.length]
+  });
+  STATE.modal = null;
+  showToast(`Invitation sent to ${email}!`, 'success');
+  render();
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function updateUserField(field, value) {
+  const cu = getCurrentUser();
+  if (!cu) return;
+  cu[field] = value.trim ? value.trim() : value;
+  const previewEl = document.querySelector('.preview-ecard-lg');
+  if (previewEl) previewEl.innerHTML = renderECard(cu, true);
+  const infoEl = previewEl?.closest('.preview-screen')?.querySelector('div:last-child');
+  if (infoEl && previewEl) infoEl.innerHTML = renderCardInfoPreview(cu);
+}
+
+function toggleUserStatus(id) {
+  const u = getUser(id);
+  if (u) { u.active = !u.active; showToast(`${u.name} ${u.active?'activated':'deactivated'}`, 'success'); render(); }
+}
+
+function copyLink(userId) {
+  const url = `https://cards.stackapp.co/${userId}`;
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => showToast('Link copied to clipboard!', 'success'));
+  else showToast('Link: ' + url, 'success');
+}
+
+function doLogout() { STATE.user = null; STATE.dashTab = 'overview'; navigate('landing'); }
+function toggleSidebar() { STATE.sidebarOpen = !STATE.sidebarOpen; render(); }
+
+function generateQR() {
+  const el = document.getElementById('qr-code-full');
+  if (!el) return;
+  el.innerHTML = '';
+  try {
+    new QRCode(el, {
+      text: `https://cards.stackapp.co/${STATE.viewCardId}`,
+      width: 140, height: 140, colorDark: '#0A0A0A', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    el.innerHTML = '<div style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-muted)">QR Code</div>';
+  }
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────────────────────
+function attachEvents() {
+  // Close sidebar on overlay click handled inline
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
